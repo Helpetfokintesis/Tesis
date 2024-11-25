@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {%load static %}
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    {% block titulo %}
+    <title>ERROR 404</title>
+    {% endblock %}
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <style>
+        .navbar-custom {
+            background-color: #343a40; /* Fondo gris oscuro */
+            height: 60px;
+        }
+        .navbar-brand {
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+        }
+        .navbar-brand:hover {
+            color: #ddd;
+        }
+        .error-container {
+            height: calc(100vh - 60px); /* Ajustar altura restando el tamaño de la barra */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .error-title {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #343a40; /* Texto de error en gris oscuro */
+        }
+        .error-subtitle {
+            font-size: 1.5rem;
+            color: #6c757d; /* Subtítulo en gris claro */
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra de navegación personalizada -->
+
+    {% block nav %}
+    <nav class="navbar navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand mx-auto" href="/">HelPet</a>
+        </div>
+    </nav>
+    {% endblock %}
+    <!-- Contenido de Error 404 -->
+
+    {% block error %}
+    <div class="error-container">
+        <div class="text-center">
+            <h1 class="error-title">ERROR 404</h1>
+            <p class="error-subtitle">Página no encontrada</p>
+        </div>
+    </div>
+    {% endblock %}
+    </body>
+</body>
+</html>

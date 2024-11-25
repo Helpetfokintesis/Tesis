@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Registro Usuario- HelPet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .navbar-custom {
+            background-color: #343a40;
+        }
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .form-section h3 {
+            margin-bottom: 15px;
+        }
+   
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Barra de navegación -->
+     
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand text-white" href="/">HelPet</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">Servicios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">Contacto</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sección de Formulario -->
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <form method="POST" action="{% url 'registroUsuario' %}" class="col-md-8 col-lg-6" onsubmit="return validarcontraseña()">
+            {% csrf_token %}
+            <div class="form-section">
+                <h3 class="text-center">Información del Tutor</h3>
+                <div class="row mb-2">
+                    <div class="col">
+                        <label for="nombreTutor" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombreTutor" name="nombre_tutor" required maxlength="100">
+                    </div>
+                    <div class="col">
+                        <label for="apellidosTutor" class="form-label">Apellidos</label>
+                        <input type="text" class="form-control" id="apellidosTutor" name="apellidos_Tutor" required maxlength="100">
+                    </div>
+                </div>
+    
+                <div class="row mb-2">
+                    <div class="col">
+                        <label for="telefonoTutor" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="telefonoTutor" name="telefono_Tutor" required maxlength="15">
+                    </div>
+                    <div class="col">
+                        <label for="correoTutor" class="form-label">Correo</label>
+                        <input type="email" class="form-control" id="correoTutor" name="correo_Tutor" required>
+                    </div>
+                </div>
+    
+                <div class="row mb-2">
+                    <div class="col">
+                        <label for="direccionTutor" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="direccionTutor" name="direccion_Tutor" required maxlength="255">
+                    </div>
+                </div>
+    
+                <div class="row mb-2">
+                    <div class="col">
+                        <label for="regionTutor" class="form-label">Región</label>
+                        <select class="form-select" id="regionTutor" name="region_Tutor" onchange="updateCities()" required>
+                            <option value="" disabled selected>Selecciona la región</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="ciudadTutor" class="form-label">Ciudad</label>
+                        <select class="form-select" id="ciudadTutor" name="ciudad_Tutor" required>
+                            <option value="" disabled selected>Selecciona la ciudad</option>
+                        </select>
+                    </div>
+                </div>
+    
+                <!-- Campos de Contraseña -->
+                <div class="row mb-2">
+                    <div class="col">
+                        <label for="contraseña" class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="contraseña" name="contraseña" required minlength="6">
+                    </div>
+                    <div class="col">
+                        <label for="confirmarcontraseña" class="form-label">Confirmar Contraseña</label>
+                        <input type="password" class="form-control" id="confirmarcontraseña" required>
+                    </div>
+                </div>
+    
+                <div class="text-center mt-4">
+                    <button style="background-color: #343a40;" type="submit" class="btn btn-primary">Guardar Información</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function validarcontraseña() {
+            const contraseña = document.getElementById("contraseña").value;
+            const confirmarcontraseña = document.getElementById("confirmarcontraseña").value;
+    
+            if (contraseña !== confirmarcontraseña) {
+                alert("Las contraseñas no coinciden. Por favor, verifica.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+
+     <!-- Modal de Éxito -->
+     <div id="registroExitosoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="cerrarModal()">&times;</span>
+            <h2>¡Registro Exitoso!</h2>
+            <p>Cuenta creada correctamente. En un momento se le redirigirá al inicio.</p>
+
+            <button class="btn-modal" onclick="cerrarModal()">Aceptar</button>
+        </div>
+
+
+        <!-- Modal de Error -->
+<div id="registroErrorModal" class="modal-error">
+    <div class="modal-error-content">
+        <span class="modal-error-close" onclick="cerrarModalError()">&times;</span>
+        <h2>Error en el Registro</h2>
+        <p>{{ error }}</p>
+        <button class="modal-error-btn" onclick="cerrarModalError()">Aceptar</button>
+    </div>
+</div>
+    </div>
+
+
+
+
+
+
+
+    
+
+<style>
+     /* Estilos del Modal */
+     .modal {
+        display: none; /* Oculto por defecto */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-content {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        animation: modalFadeIn 0.3s ease; /* Animación para mostrar el modal */
+    }
+    .close-button {
+        float: right;
+        font-size: 24px;
+        cursor: pointer;
+        color: #333;
+    }
+    .btn-modal {
+        background-color: #4CAF50; /* Cambia el color según tu diseño */
+        color: #ffffff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 15px;
+        font-size: 16px;
+    }
+    .btn-modal:hover {
+        background-color: #45a049; /* Cambia el color del botón al pasar el mouse */
+    }
+
+    /* Animación de entrada del modal */
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+
+
+  /* Estilos del Modal de Error */
+  .modal-error {
+        display: none; /* Oculto por defecto */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-error-content {
+        background-color: #ffe6e6; /* Fondo rojo claro para indicar error */
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        border-left: 5px solid #f44336; /* Borde rojo para resaltar el error */
+        animation: modalFadeIn 0.3s ease;
+    }
+    .modal-error-close {
+        float: right;
+        font-size: 24px;
+        cursor: pointer;
+        color: #f44336;
+    }
+    .modal-error-btn {
+        background-color: #f44336; /* Color rojo para el botón de error */
+        color: #ffffff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 15px;
+        font-size: 16px;
+    }
+    .modal-error-btn:hover {
+        background-color: #d32f2f; /* Color más oscuro al pasar el mouse */
+    }
+
+    /* Animación de entrada del modal */
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+</style>
+
+
+
+
+
+
+<script>
+    function abrirModal() {
+        document.getElementById("registroExitosoModal").style.display = "flex";
+        setTimeout(function() {
+            window.location.href = "/"; // Redirige al inicio después de unos segundos
+        }, 3000); // Cambia 3000 por la cantidad de milisegundos que quieres que dure el modal (3000ms = 3s)
+    }
+
+    function cerrarModal() {
+        document.getElementById("registroExitosoModal").style.display = "none";
+    }
+
+    // Cerrar el modal si se hace clic fuera del contenido
+    window.onclick = function(event) {
+        var modal = document.getElementById("registroExitosoModal");
+        if (event.target === modal) {
+            cerrarModal();
+        }
+    }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+    <br>
+    <!-- Datos de regiones y comunas -->
+    <script>
+        const RegionesYcomunas = {
+    "regiones": [
+        {
+            "NombreRegion": "Antofagasta",
+            "comunas": ["Antofagasta", "Calama", "María Elena", "Mejillones", "Ollagüe", "San Pedro de Atacama", "Sierra Gorda", "Taltal", "Tocopilla"]
+        },
+        {
+            "NombreRegion": "Arica y Parinacota",
+            "comunas": ["Arica", "Camarones", "General Lagos", "Putre"]
+        },
+        {
+            "NombreRegion": "Atacama",
+            "comunas": ["Alto del Carmen", "Caldera", "Chañaral", "Copiapó", "Diego de Almagro", "Freirina", "Huasco", "Tierra Amarilla", "Vallenar"]
+        },
+        {
+            "NombreRegion": "Coquimbo",
+            "comunas": ["Andacollo", "Canela", "Combarbalá", "Coquimbo", "Illapel", "La Higuera", "La Serena", "Los Vilos", "Monte Patria", "Ovalle", "Paiguano", "Punitaqui", "Río Hurtado", "Salamanca", "Vicuña"]
+        },
+        {
+            "NombreRegion": "Región Aisén del Gral. Carlos Ibáñez del Campo",
+            "comunas": ["Aisén", "Cisnes", "Coihaique", "Cochrane", "Guaitecas", "Lago Verde", "O’Higgins", "Río Ibáñez", "Tortel"]
+        },
+        {
+            "NombreRegion": "Región de La Araucanía",
+            "comunas": ["Angol", "Carahue", "Cholchol", "Collipulli", "Cunco", "Curacautín", "Curarrehue", "Ercilla", "Freire", "Galvarino", "Gorbea", "Lautaro", "Loncoche", "Lonquimay", "Los Sauces", "Lumaco", "Melipeuco", "Nueva Imperial", "Padre Las Casas", "Perquenco", "Pitrufquén", "Pucón", "Purén", "Renaico", "Saavedra", "Teodoro Schmidt", "Temuco", "Toltén", "Traiguén", "Victoria", "Vilcún", "Villarrica"]
+        },
+        {
+            "NombreRegion": "Región de Los Lagos",
+            "comunas": ["Ancud", "Calbuco", "Castro", "Chaitén", "Chonchi", "Cochamó", "Curaco de Vélez", "Dalcahue", "Fresia", "Frutillar", "Futaleufú", "Hualaihué", "Lago Ranco", "Llanquihue", "Los Muermos", "Maullín", "Osorno", "Palena", "Puerto Montt", "Puerto Octay", "Puerto Varas", "Purranque", "Puyehue", "Queilén", "Quellón", "Quemchi", "Quinchao", "Río Negro", "San Juan de la Costa", "San Pablo"]
+        },
+        {
+            "NombreRegion": "Región de Los Ríos",
+            "comunas": ["Corral", "Futrono", "La Unión", "Lago Ranco", "Lanco", "Los Lagos", "Máfil", "Mariquina", "Paillaco", "Panguipulli", "Río Bueno", "Valdivia"]
+        },
+        {
+            "NombreRegion": "Región de Magallanes y de la Antártica Chilena",
+            "comunas": ["Antártica", "Cabo de Hornos (Ex Navarino)", "Laguna Blanca", "Natales", "Porvenir", "Primavera", "Punta Arenas", "Río Verde", "San Gregorio", "Timaukel", "Torres del Paine"]
+        },
+        {
+            "NombreRegion": "Región del Biobío",
+            "comunas": ["Alto Biobío", "Antuco", "Arauco", "Bulnes", "Cabrero", "Cañete", "Chillán", "Chillán Viejo", "Cobquecura", "Coelemu", "Coihueco", "Concepción", "Contulmo", "Coronel", "Curanilahue", "El Carmen", "Florida", "Hualpén", "Hualqui", "Laja", "Lebu", "Los Álamos", "Los Ángeles", "Mulchén", "Nacimiento", "Negrete", "Ninhue", "Ñiquén", "Pemuco", "Penco", "Pinto", "Portezuelo", "Quilaco", "Quilleco", "Quillón", "Quirihue", "Ránquil", "San Carlos", "San Fabián", "San Ignacio", "San Nicolás", "San Pedro de la Paz", "San Rosendo", "Santa Bárbara", "Santa Juana", "Talcahuano", "Tirúa", "Tomé", "Treguaco", "Tucapel", "Yumbel", "Yungay"]
+        },
+        {
+            "NombreRegion": "Región del Libertador Gral. Bernardo O’Higgins",
+            "comunas": ["Chépica", "Chimbarongo", "Codegua", "Coinco", "Coltauco", "Doñihue", "Graneros", "La Estrella", "Las Cabras", "Litueche", "Lolol", "Machalí", "Malloa", "Marchihue", "Mostazal", "Nancagua", "Navidad", "Olivar", "Palmilla", "Paredones", "Peralillo", "Peumo", "Pichidegua", "Pichilemu", "Placilla", "Pumanque", "Quinta de Tilcoco", "Rancagua", "Rengo", "Requínoa", "San Fernando", "San Vicente", "Santa Cruz"]
+        },
+        {
+            "NombreRegion": "Región Metropolitana de Santiago",
+            "comunas": ["Alhué", "Buin", "Calera de Tango", "Cerrillos", "Cerro Navia", "Colina", "Conchalí", "Curacaví", "El Bosque", "El Monte", "Estación Central", "Huechuraba", "Independencia", "Isla de Maipo", "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Lampa", "Las Condes", "Lo Barnechea", "Lo Espejo", "Lo Prado", "Macul", "Maipú", "María Pinto", "Melipilla", "Ñuñoa", "Padre Hurtado", "Paine", "Pedro Aguirre Cerda", "Peñaflor", "Peñalolén", "Pirque", "Providencia", "Pudahuel", "Puente Alto", "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San Bernardo", "San Joaquín", "San José de Maipo", "San Miguel", "San Pedro", "San Ramón", "Santiago", "Talagante", "Tiltil", "Vitacura"]
+        },
+        {
+            "NombreRegion": "Tarapacá",
+            "comunas": ["Alto Hospicio", "Camiña", "Colchane", "Huara", "Iquique", "Pica", "Pozo Almonte"]
+        },
+        {
+            "NombreRegion": "Valparaíso",
+            "comunas": ["Algarrobo", "Cabildo", "Calle Larga", "Cartagena", "Casablanca", "Catemu", "Concón", "El Quisco", "El Tabo", "Hijuelas", "Isla de Pascua", "Juan Fernández", "La Calera", "La Cruz", "La Ligua", "Limache", "Llaillay", "Los Andes", "Nogales", "Olmué", "Panquehue", "Papudo", "Petorca", "Puchuncaví", "Putaendo", "Quillota", "Quilpué", "Quintero", "Rinconada", "San Antonio", "San Esteban", "San Felipe", "Santa María", "Santo Domingo", "Valparaíso", "Villa Alemana", "Viña del Mar", "Zapallar"]
+        }
+    ]
+};
+    
+        function loadRegionsAndCities() {
+            const regionSelect = document.getElementById("regionTutor");
+
+            // Llenar el campo de regiones
+            RegionesYcomunas.regiones.forEach(region => {
+                const option = document.createElement("option");
+                option.value = region.NombreRegion;
+                option.textContent = region.NombreRegion;
+                regionSelect.appendChild(option);
+            });
+        }
+
+        function updateCities() {
+            const regionSelect = document.getElementById("regionTutor");
+            const citySelect = document.getElementById("ciudadTutor");
+            const selectedRegion = regionSelect.value;
+
+            // Limpiar opciones anteriores
+            citySelect.innerHTML = '<option value="" disabled selected>Selecciona la ciudad</option>';
+
+            // Buscar las comunas de la región seleccionada y agregarlas
+            const regionData = RegionesYcomunas.regiones.find(region => region.NombreRegion === selectedRegion);
+            if (regionData) {
+                regionData.comunas.forEach(comuna => {
+                    const option = document.createElement("option");
+                    option.value = comuna;
+                    option.textContent = comuna;
+                    citySelect.appendChild(option);
+                });
+            }
+        }
+
+        // Cargar regiones al cargar la página
+        window.addEventListener("DOMContentLoaded", loadRegionsAndCities);
+
+
+
+    </script>
+
+
+
+{% if registro_exitoso %}
+<script>
+    abrirModal(); // Abre el modal automáticamente si el registro fue exitoso
+</script>
+{% endif %}
+
+{% if error %}
+<script>
+    abrirModalError();  // Abre el modal de error automáticamente si ocurre un problema
+</script>
+{% endif %}
+
+</body>
+</html>
