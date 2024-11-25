@@ -27,6 +27,7 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
     path('', views.index, name = "index"),
+    path('errores/403/', views.error_prohibido, name='error_403'),
     path('iniciarSesion', views.iniciarSesion, name='iniciarSesion'),
     path('cerrarSesion', views.cerrarSesion, name='cerrarSesion'),
     path('registro', views.registro, name = "registro"),
@@ -47,9 +48,9 @@ urlpatterns = [
     path('agenda', views.agenda, name= 'agenda'),
     path('agregar_producto/', views.agregar_producto, name='agregar_producto'),
     path('visualizar_productos/', views.visualizar_productos, name='visualizar_productos'),
-    path('agregar_consulta/', views.agregar_consulta, name='agregar_consulta'),
+    path('agregar_consulta/<uuid:id_mascota>', views.agregar_consulta, name='agregar_consulta'),
     path('visualizar_consultas/', views.visualizar_consultas, name='visualizar_consultas'),
-    path('agregar_agenda/', views.agregar_agenda, name='agregar_agenda'),
+    path('agregar_agenda/<id_mascota>/', views.agregar_agenda, name='agregar_agenda'),
     path('agregar_mascota/<uuid:id_dueño>/', views.agregar_mascota, name='agregar_mascota'),
     path('visualizar_mascota/', views.visualizar_mascota, name='visualizar_mascota'),
     path('editar_consulta/<uuid:id_consulta>/', views.editar_consulta, name='editar_consulta'),
@@ -57,11 +58,21 @@ urlpatterns = [
     path('editar_cita/<uuid:id_agenda>/', views.editar_cita, name='editar_cita'),
     path('eliminar_cita/<uuid:id_agenda>/', views.eliminar_cita, name='eliminar_cita'),
 
+
+    path('eliminar_producto/<uuid:id_producto>/', views.eliminar_producto, name='eliminar_producto'),
+
+    path('dashboard_usuario/', views.dashboard_usuario, name='dashboard_usuario'),
+    path('perfil_usuario/', views.perfil_usuario, name='perfil_usuario'),
+    path('mis_mascotas/', views.mis_mascotas, name='mis_mascotas'),
+    path('editar_perfil/<uuid:id_dueño>/', views.editar_perfil, name='editar_perfil'),
+    path('editar_contrasena/<uuid:id_dueño>/', views.editar_contrasena, name='editar_contrasena'),
+    path('agregar_mascota/', views.agregar_mascota_dueno, name='agregar_mascota_dueno'),
+
 ]
 
 handler404 = 'app.views.error_pagina_no_encontrada'
 handler500 = 'app.views.error_internal_server'
-
+handler403 = 'app.views.error_prohibido'
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
 

@@ -16,6 +16,10 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             margin-top: 20px;
         }
+        .dropdown-menu {
+            max-height: 300px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -28,23 +32,15 @@
 
     <!-- Formulario de agregar consulta -->
     <div class="container">
-        <form method="POST" action="{% url 'agregar_consulta' %}">
+        <form method="POST" action="{% url 'agregar_consulta' mascota.id_mascota %}">
             {% csrf_token %}
             <div class="form-section">
-                <h3 class="text-center">Registrar Consulta</h3>
-                <div class="mb-3">
-                    <label for="mascota" class="form-label">Mascota</label>
-                    <select class="form-select" id="mascota" name="mascota" required>
-                        <option value="" disabled selected>Selecciona una mascota</option>
-                        {% for mascota in mascotas %}
-                        <option value="{{ mascota.id }}">{{ mascota.nombre }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="text-center">
+                    <h3><strong>Registrar Consulta</strong></h3>
+                    <p><strong>Nombre Mascota:</strong> {{ mascota.nombre }} <br>
+                       <strong>Dueño:</strong> {{ mascota.dueño.nombre }} {{ mascota.dueño.apellidos }}</p>
                 </div>
-                <div class="mb-3">
-                    <label for="fecha_consulta" class="form-label">Fecha de la Consulta</label>
-                    <input type="date" class="form-control" id="fecha_consulta" name="fecha_consulta" required>
-                </div>
+
                 <div class="mb-3">
                     <label for="motivo" class="form-label">Motivo</label>
                     <textarea class="form-control" id="motivo" name="motivo" rows="3" placeholder="Describe el motivo de la consulta" required></textarea>
@@ -59,12 +55,25 @@
                 </div>
                 <div class="mb-3">
                     <label for="productos" class="form-label">Productos Relacionados</label>
-                    <select class="form-select" id="productos" name="productos" multiple>
-                        {% for producto in productos %}
-                        <option value="{{ producto.id_producto }}">{{ producto.nombre_producto }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownProductos" data-bs-toggle="dropdown" aria-expanded="false">
+                            Seleccionar productos
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownProductos">
+                            {% for producto in productos %}
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="{{ producto.id_producto }}" id="producto{{ producto.id_producto }}" name="productos">
+                                    <label class="form-check-label" for="producto{{ producto.id_producto }}">
+                                        {{ producto.nombre_producto }}
+                                    </label>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
+
                 <div class="text-center mt-4">
                     <button type="submit" class="btn btn-primary">Guardar Consulta</button>
                     <button type="button" class="btn btn-secondary" onclick="limpiarFormulario()">Limpiar</button>
@@ -74,17 +83,15 @@
         </form>
     </div>
 
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function limpiarFormulario() {
-            document.getElementById("mascota").value = "";
-            document.getElementById("fecha_consulta").value = "";
             document.getElementById("motivo").value = "";
             document.getElementById("diagnostico").value = "";
             document.getElementById("tratamiento").value = "";
-            const productosSelect = document.getElementById("productos");
-            for (let i = 0; i < productosSelect.options.length; i++) {
-                productosSelect.options[i].selected = false;
-            }
+            const checkboxes = document.querySelectorAll('.form-check-input');
+            checkboxes.forEach(checkbox => checkbox.checked = false);
         }
     </script>
 </body>

@@ -33,7 +33,7 @@
             <a class="navbar-brand text-white" href="/">HelPet - Recepción</a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link text-white" href="/CerrarSesion">Cerrar Sesión</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="/cerrarSesion">Cerrar Sesión</a></li>
                 </ul>
             </div>
         </div>
@@ -82,79 +82,104 @@
             <!-- Contenido principal -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 content">
                 <!-- Filtro de recordatorios -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <input type="text" class="form-control" placeholder="Buscar por nombre de mascota o dueño">
+                <div class="container mt-4">
+                    <!-- Formulario de búsqueda -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <form method="GET" action="{% url 'recordatorios' %}">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="q" placeholder="Buscar por nombre de mascota o dueño" value="{{ query }}">
+                                    <button type="submit" class="btn btn-primary">Buscar</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <select class="form-select">
-                            <option selected>Filtrar por tipo</option>
-                            <option value="vacuna">Vacuna</option>
-                            <option value="control">Control</option>
-                            <option value="tratamiento">Tratamiento</option>
-                        </select>
+                        <form method="GET" action="{% url 'recordatorios' %}">
+                            <select class="form-select" name="tipo">
+                                <option value="" {% if not tipo_filtro %}selected{% endif %}>Filtrar por tipo</option>
+                                <option value="vacuna" {% if tipo_filtro == "vacuna" %}selected{% endif %}>Vacuna</option>
+                                <option value="control" {% if tipo_filtro == "control" %}selected{% endif %}>Control</option>
+                                <option value="tratamiento" {% if tipo_filtro == "tratamiento" %}selected{% endif %}>Tratamiento</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary mt-2">Filtrar</button>
+                        </form>
                     </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-primary w-100">Buscar</button>
+                    <!-- Mostrar mensaje si no hay resultados -->
+                    {% if not mascotas_pendientes and not mascotas_completados and not mascotas_sin_recordatorios %}
+                    <div class="alert alert-warning text-center">
+                        No se encontraron resultados.
                     </div>
-                </div>
-
-                <!-- Tabla de recordatorios -->
-                <div class="table-responsive">
-                    {% if mascota %}
-                    <table class="table table-striped table-bordered">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Nombre de Mascota</th>
-                                <th>Dueño</th>
-                                
-                                {% if hay_recordatorios %}
+                    {% else %}
+                    <!-- Tabla de resultados -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre de Mascota</th>
+                                    <th>Dueño</th>
                                     <th>Tipo de Recordatorio</th>
                                     <th>Fecha</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
-                                {% else %}
-                                    <th>Tipo de Recordatorio</th>
-                                    <th>Acciones</th>
-                                {% endif %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for m in mascota %}
-                            <tr>
-                                <td>{{ m.nombre }}</td>
-                                <td>{{ m.dueño.nombre }} {{ m.dueño.apellidos }}</td>
-                                
-                                {% if m.recordatorios.exists %}
-                                    {% for recordatorio in m.recordatorios.all %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Mascotas con recordatorios pendientes -->
+                                {% for m in mascotas_pendientes %}
+                                    {% for recordatorio in m.recordatorios %}
+                                    <tr>
+                                        <td>{{ m.mascota.nombre }}</td>
+                                        <td>{{ m.mascota.dueño.nombre }} {{ m.mascota.dueño.apellidos }}</td>
                                         <td>{{ recordatorio.tipo }}</td>
                                         <td>{{ recordatorio.fecha }}</td>
+                                        <td><span class="badge bg-warning">{{ recordatorio.estado }}</span></td>
                                         <td>
-                                            <span class="badge {% if recordatorio.estado == 'Completado' %}bg-success{% else %}bg-warning{% endif %}">
-                                                {{ recordatorio.estado }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% if recordatorio.estado != 'Completado' %}
-                                                <a href="{% url 'marcar_completado' recordatorio.id_recordatorio %}" class="btn btn-sm btn-success">Marcar como completado</a>
-                                            {% endif %}
+                                            <a href="{% url 'marcar_completado' recordatorio.id_recordatorio %}" class="btn btn-sm btn-success">Marcar como completado</a>
                                             <a href="{% url 'eliminar_recordatorio' recordatorio.id_recordatorio %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                            <a href="{% url 'agregar_recordatorio' m.mascota.id_mascota %}" class="btn btn-sm btn-primary">Agregar Recordatorio</a>
                                         </td>
+                                    </tr>
                                     {% endfor %}
-                                {% else %}
-                                    <td>No hay recordatorios</td>
+                                {% endfor %}
+                
+                                <!-- Mascotas con recordatorios completados -->
+                                {% for m in mascotas_completados %}
+                                    {% for recordatorio in m.recordatorios %}
+                                    <tr>
+                                        <td>{{ m.mascota.nombre }}</td>
+                                        <td>{{ m.mascota.dueño.nombre }} {{ m.mascota.dueño.apellidos }}</td>
+                                        <td>{{ recordatorio.tipo }}</td>
+                                        <td>{{ recordatorio.fecha }}</td>
+                                        <td><span class="badge bg-success">{{ recordatorio.estado }}</span></td>
+                                        <td>
+                                            <a href="{% url 'eliminar_recordatorio' recordatorio.id_recordatorio %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                            <a href="{% url 'agregar_recordatorio' m.mascota.id_mascota %}" class="btn btn-sm btn-primary">Agregar Recordatorio</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% endfor %}
+                
+                                <!-- Mascotas sin recordatorios -->
+                                {% for m in mascotas_sin_recordatorios %}
+                                <tr>
+                                    <td>{{ m.mascota.nombre }}</td>
+                                    <td>{{ m.mascota.dueño.nombre }} {{ m.mascota.dueño.apellidos }}</td>
+                                    <td colspan="2">No hay recordatorios</td>
+                                    <td>-</td>
                                     <td>
-                                        <a href="{% url 'agregar_recordatorio' m.id_mascota %}" class="btn btn-sm btn-primary">Agregar Recordatorio</a>
+                                        <a href="{% url 'agregar_recordatorio' m.mascota.id_mascota %}" class="btn btn-sm btn-primary">Agregar Recordatorio</a>
                                     </td>
-                                {% endif %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    {% else %}
-                        <p style="text-align: center;">No hay Mascotas.</p>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     {% endif %}
                 </div>
+
+
+                
             </main>
         </div>
     </div>

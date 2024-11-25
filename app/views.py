@@ -11,13 +11,14 @@ from datetime import date
 from rest_framework import viewsets
 from .serializer import DueñoSerializer, MascotaSerializer
 
-
+from django.contrib.auth.decorators import user_passes_test
 
 from django.conf import settings
 from .utils import formato_numero_chileno, enviar_mensaje_whatsapp, enviar_correo_electronico
 
+from datetime import datetime
 
-
+from django.db.models import Q
 
 
 
@@ -54,13 +55,17 @@ def error_internal_server(request):
 
 
     
+def usuario_autentificado(user):
+    return user.is_authenticated  
 
+def es_superusuario(user):
+    return user.is_superuser
     
 
 
 #HACERLO CUANDO ESTE LA AUTENTIFICACION
-#def error_prohibido(request, exception):
-  #  return render(request, "403.html", status= 403)
+def error_prohibido(request, exception=None):
+    return render(request, "errores/403.html", status=403)
 
 
 
@@ -88,22 +93,54 @@ def iniciarSesion(request):
 
 
 
-
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def recordatorios(request):
-    # Cargar todas las mascotas junto con sus recordatorios
-    mascotas = Mascota.objects.prefetch_related('recordatorios').all()
+    # Obtener parámetros de búsqueda y filtro
+    query = request.GET.get('q', '').strip()  # Búsqueda por nombre
+    tipo_filtro = request.GET.get('tipo', '').strip()  # Filtro por tipo de recordatorio
 
-    # Verificar si existe al menos un recordatorio
-    hay_recordatorios = any(mascota.recordatorios.exists() for mascota in mascotas)
+    # Cargar todas las mascotas
+    mascotas = Mascota.objects.prefetch_related('recordatorios', 'dueño').all()
+
+    # Aplicar filtros si hay búsqueda o tipo seleccionado
+    if query:
+        mascotas = mascotas.filter(
+            Q(nombre__icontains=query) |  # Buscar por nombre de la mascota
+            Q(dueño__nombre__icontains=query) |  # Buscar por nombre del dueño
+            Q(dueño__apellidos__icontains=query) |  # Buscar por apellido del dueño
+            Q(dueño__nombre__icontains=query.split()[0], dueño__apellidos__icontains=query.split()[-1])  # Nombre y apellido
+        )
+
+    if tipo_filtro:
+        mascotas = mascotas.filter(recordatorios__tipo=tipo_filtro)
+
+    # Separar las mascotas en grupos según el estado de los recordatorios
+    mascotas_con_pendientes = []
+    mascotas_con_completados = []
+    mascotas_sin_recordatorios = []
+
+    for mascota in mascotas:
+        completados = mascota.recordatorios.filter(estado='Completado')
+        pendientes = mascota.recordatorios.exclude(estado='Completado')
+
+        if pendientes.exists():
+            mascotas_con_pendientes.append({'mascota': mascota, 'recordatorios': pendientes})
+        elif completados.exists():
+            mascotas_con_completados.append({'mascota': mascota, 'recordatorios': completados})
+        else:
+            mascotas_sin_recordatorios.append({'mascota': mascota})
 
     # Pasar los datos al template
     data = {
-        'mascota': mascotas,
-        'hay_recordatorios': hay_recordatorios
+        'mascotas_pendientes': mascotas_con_pendientes,
+        'mascotas_completados': mascotas_con_completados,
+        'mascotas_sin_recordatorios': mascotas_sin_recordatorios,
+        'query': query,  # Para mostrar el texto en el campo de búsqueda
+        'tipo_filtro': tipo_filtro,  # Para mantener el filtro seleccionado
     }
     return render(request, 'recepcion/recordatorios.html', data)
 
-
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def agregar_recordatorio(request, id_mascota):
     mascota = get_object_or_404(Mascota, id_mascota = id_mascota)
 
@@ -130,13 +167,16 @@ def agregar_recordatorio(request, id_mascota):
 
 
 
-
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def eliminar_recordatorio(request, id_recordatorio):
     recordatorio = get_object_or_404(Recordatorio, id_recordatorio = id_recordatorio)
     recordatorio.delete()
     return redirect('recordatorios')
 
 
+
+
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def marcar_completado(request, id_recordatorio):
     recordatorio = get_object_or_404(Recordatorio, id_recordatorio = id_recordatorio)
     recordatorio.estado = "Completado"
@@ -144,7 +184,7 @@ def marcar_completado(request, id_recordatorio):
     return redirect('recordatorios')
 
 
-
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def registro(request):
     try:
         if request.method == "POST":
@@ -323,13 +363,18 @@ def cerrarSesion(request):
     logout(request)
     return redirect('index')
 
+
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def dashboard(request):
     return render(request, 'recepcion/dashboard.html')
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 
 def agenda(request):
     agenda = Agenda.objects.all()
     return render(request, 'recepcion/agenda.html', {'agenda': agenda})
 
+
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def agregar_producto(request):
     if request.method == 'POST':
         # Obtener datos del formulario
@@ -339,76 +384,93 @@ def agregar_producto(request):
         stock = request.POST.get('stock')
 
         # Crear el producto
-        Producto.objects.create(
-            nombre_producto=nombre_producto,
-            tipo_producto=tipo_producto,
-            precio=precio,
-            stock=stock
+        producto = Producto(
+            id_producto = uuid.uuid4(),
+            nombre_producto = nombre_producto,
+            tipo_producto = tipo_producto,
+            precio = precio,
+            stock = stock
         )
+        producto.save()
         return redirect('visualizar_productos')  # Redirigir a la vista de visualización
 
     return render(request, 'recepcion/agregar_producto.html')
 
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def visualizar_productos(request):
     productos = Producto.objects.all()  # Obtener todos los productos
     return render(request, 'recepcion/visualizar_productos.html', {'productos': productos})
 
-def agregar_consulta(request):
+def eliminar_producto(request, id_producto):
+    producto = get_object_or_404(Producto, id_producto=id_producto)
+    producto.delete()
+    return redirect('visualizar_productos')
+
+
+
+@user_passes_test(es_superusuario, login_url='/errores/403/')
+def agregar_consulta(request, id_mascota):
+    mascota = get_object_or_404(Mascota, id_mascota=id_mascota)  # Obtener la mascota por ID
     if request.method == 'POST':
         # Obtener datos del formulario
-        mascota_id = request.POST.get('mascota')
-        fecha_consulta = request.POST.get('fecha_consulta')
         motivo = request.POST.get('motivo')
         diagnostico = request.POST.get('diagnostico')
         tratamiento = request.POST.get('tratamiento')
-        productos_ids = request.POST.getlist('productos')
+        productos_ids = request.POST.getlist('productos')  # Obtener lista de IDs de productos seleccionados
 
-        # Crear la consulta
+        # Crear la consulta (sin asignar productos todavía)
         consulta = Consulta.objects.create(
-            mascota=Mascota.objects.get(id=mascota_id),
-            fecha_consulta=fecha_consulta,
+            id_consulta=uuid.uuid4(),
+            mascota=mascota,
+            fecha_consulta=datetime.now(),
             motivo=motivo,
-            diagnostico=diagnostico,
-            tratamiento=tratamiento
+            diagnóstico=diagnostico,
+            tratamiento=tratamiento,
         )
-        # Asignar productos relacionados
-        consulta.productos.set(Producto.objects.filter(id_producto__in=productos_ids))
+
+        # Asignar productos seleccionados a la consulta
+        if productos_ids:  # Verifica si hay productos seleccionados
+            productos = Producto.objects.filter(id_producto__in=productos_ids)  # Filtra los productos seleccionados
+            consulta.productos.set(productos)  # Asigna los productos seleccionados a la consulta
 
         return redirect('visualizar_consultas')  # Redirigir a la vista de visualización
 
     # Pasar datos al formulario
-    mascotas = Mascota.objects.all()
-    productos = Producto.objects.all()
-    return render(request, 'recepcion/agregar_consulta.html', {'mascotas': mascotas, 'productos': productos})
+    productos = Producto.objects.all()  # Obtener todos los productos disponibles
+    return render(
+        request,
+        'recepcion/agregar_consulta.html',
+        {'mascota': mascota, 'productos': productos}
+    )
 
+
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def visualizar_consultas(request):
     consultas = Consulta.objects.all()
     return render(request, 'recepcion/visualizar_consultas.html', {'consultas': consultas})
 
-def agregar_agenda(request):
+@user_passes_test(es_superusuario, login_url='/errores/403/')
+
+def agregar_agenda(request, id_mascota):
+    mascota = get_object_or_404(Mascota, id_mascota = id_mascota)
+  
     if request.method == 'POST':
         # Obtener datos del formulario
         fecha = request.POST.get('fecha')
         hora = request.POST.get('hora')
-        estado = request.POST.get('estado')
-        mascota_id = request.POST.get('mascota')
-        usuario_id = request.POST.get('usuario')
 
         # Crear el registro en la agenda
         Agenda.objects.create(
             fecha=fecha,
             hora=hora,
-            estado=estado,
-            mascota=Mascota.objects.get(id=mascota_id),
-            usuario=UsuarioSistema.objects.get(id=usuario_id)
+            estado='Pendiente',
+            mascota= mascota,
         )
-        return redirect('visualizar_agenda')  # Redirigir a la vista de visualización
+        return redirect('agenda')  # Redirigir a la vista de visualización
 
-    # Obtener mascotas y usuarios para los select
-    mascotas = Mascota.objects.all()
-    usuarios = UsuarioSistema.objects.all()
-    return render(request, 'recepcion/agregar_agenda.html', {'mascotas': mascotas, 'usuarios': usuarios})
+    return render(request, 'recepcion/agregar_agenda.html', {'mascota': mascota})
 
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def agregar_mascota(request, id_dueño):
     dueño = get_object_or_404(Dueño, id_dueño=id_dueño)  # Obtiene el dueño por ID
     if request.method == 'POST':
@@ -434,10 +496,12 @@ def agregar_mascota(request, id_dueño):
     # Renderizar el formulario para agregar la mascota
     return render(request, 'recepcion/agregar_mascota.html', {'dueño': dueño})
 
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def visualizar_mascota(request):
     mascotas = Mascota.objects.select_related('dueño').all()
     return render(request, 'recepcion/visualizar_mascota.html', {'mascotas': mascotas})
 
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def editar_consulta(request, id_consulta):
     consulta = get_object_or_404(Consulta, id_consulta=id_consulta)
     if request.method == 'POST':
@@ -446,13 +510,15 @@ def editar_consulta(request, id_consulta):
         consulta.tratamiento = request.POST.get('tratamiento')
         consulta.save()
         return redirect('visualizar_consultas')
-    return render(request, 'editar_consulta.html', {'consulta': consulta})
+    return render(request, 'tutor/editar_consulta.html', {'consulta': consulta})
 
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def eliminar_consulta(request, id_consulta):
     consulta = get_object_or_404(Consulta, id_consulta=id_consulta)
     consulta.delete()
     return redirect('visualizar_consultas')
 
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 def editar_cita(request, id_agenda):
     cita = get_object_or_404(Agenda, id_agenda=id_agenda)
     if request.method == 'POST':
@@ -460,10 +526,125 @@ def editar_cita(request, id_agenda):
         cita.hora = request.POST.get('hora')
         cita.estado = request.POST.get('estado')
         cita.save()
-        return redirect('visualizar_agenda')
+        return redirect('agenda')
     return render(request, 'editar_cita.html', {'cita': cita})
+
+@user_passes_test(es_superusuario, login_url='/errores/403/')
 
 def eliminar_cita(request, id_agenda):
     cita = get_object_or_404(Agenda, id_agenda=id_agenda)
     cita.delete()
-    return redirect('visualizar_agenda')
+    return redirect('agenda')
+
+
+
+
+
+
+
+
+
+
+def dashboard_usuario(request):
+    return render(request, 'tutor/dashboard_usuario.html')
+
+def perfil_usuario(request):
+    """Renderiza el perfil del usuario."""
+    usuario = get_object_or_404(Dueño, correo = request.user.email)  # Obtiene al usuario autenticado
+    return render(request, 'tutor/perfil_usuario.html', {'usuario': usuario})
+
+def mis_mascotas(request):
+    """Renderiza el listado de mascotas del usuario."""
+    usuario = get_object_or_404(Dueño, correo = request.user.email)  # Obtiene al usuario autenticado
+    mascotas = Mascota.objects.filter(dueño=usuario)  # Filtra las mascotas por dueño
+    return render(request, 'tutor/mis_mascotas.html', {'mascotas': mascotas})
+
+def editar_perfil(request, id_dueño):
+    # Obtener el usuario actual
+    usuario = get_object_or_404(Dueño, id_dueño=id_dueño)
+    
+    if request.method == 'POST':
+        # Recuperar los datos enviados desde el formulario
+        nombre = request.POST.get('nombre')
+        apellidos = request.POST.get('apellidos')
+        telefono = request.POST.get('telefono')
+        correo = request.POST.get('correo')
+        direccion = request.POST.get('direccion')
+        ciudad = request.POST.get('ciudad')
+        region = request.POST.get('region')
+        pais = request.POST.get('pais')
+        
+        # Actualizar los campos del usuario
+        usuario.nombre = nombre
+        usuario.apellidos = apellidos
+        usuario.teléfono = telefono
+        usuario.correo = correo
+        usuario.dirección = direccion
+        usuario.ciudad = ciudad
+        usuario.región = region
+        usuario.país = pais
+        usuario.save()  # Guardar los cambios en la base de datos
+
+        # Mostrar un mensaje de éxito
+        messages.success(request, 'Tu perfil ha sido actualizado correctamente.')
+        return redirect('perfil_usuario')  # Redirige a la página del perfil (ajusta según corresponda)
+
+    # Renderizar el formulario con los datos actuales del usuario
+    return render(request, 'tutor/editar_perfil.html', {'usuario': usuario})
+
+def editar_contrasena(request):
+    # Obtener el usuario actual
+    dueño = get_object_or_404(Dueño, correo = request.user.email)
+    usuario = get_object_or_404(UsuarioSistema, correo = request.user.email)
+    user = get_object_or_404(User, username = request.user.email)
+    if request.method == 'POST':
+        contrasena_actual = request.POST.get('contrasena_actual')
+        nueva_contrasena = request.POST.get('nueva_contrasena')
+        confirmar_contrasena = request.POST.get('confirmar_contrasena')
+
+        # Validar que las contraseñas coinciden
+        if nueva_contrasena != confirmar_contrasena:
+            messages.error(request, 'La nueva contraseña y su confirmación no coinciden.')
+            return redirect('editar_contrasena')
+
+        # Verificar la contraseña actual
+        usuario = request.user
+        if not usuario.check_password(contrasena_actual):
+            messages.error(request, 'La contraseña actual es incorrecta.')
+            return redirect('editar_contrasena')
+
+        # Actualizar la contraseña
+        usuario.set_password(nueva_contrasena)
+        usuario.save()
+
+        # Mantener la sesión activa después de cambiar la contraseña
+        update_session_auth_hash(request, usuario)
+
+        # Mensaje de éxito y redirección
+        messages.success(request, 'Tu contraseña ha sido actualizada correctamente.')
+        return redirect('perfil')  # Ajusta según la página de perfil
+
+    return render(request, 'tutor/editar_contrasena.html', {'usuario': usuario})
+
+def agregar_mascota_dueno(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        raza = request.POST.get('raza', '')
+        especie = request.POST.get('especie')
+        sexo = request.POST.get('sexo')
+        nacimiento = request.POST.get('nacimiento')
+
+        # Crear la nueva mascota asociada al usuario actual
+        mascota = Mascota(
+            dueño=request.user,  # Se asocia la mascota al usuario autenticado
+            nombre=nombre,
+            raza=raza,
+            especie=especie,
+            sexo=sexo,
+            nacimiento=nacimiento,
+        )
+        mascota.save()
+        messages.success(request, 'Mascota registrada con éxito.')
+        return redirect('dashboard_usuario')  # Redirige al dashboard del usuario
+
+    return render(request, 'agregar_mascota.html')  # Muestra el formulario

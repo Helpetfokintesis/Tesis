@@ -33,7 +33,7 @@
             <a class="navbar-brand text-white" href="/">HelPet - Recepción</a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link text-white" href="/CerrarSesion">Cerrar Sesión</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="/cerrarSesion">Cerrar Sesión</a></li>
                 </ul>
             </div>
         </div>
@@ -83,10 +83,11 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 content">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom mb-3">
                     <h1 class="h2">Lista de Productos</h1>
+                    <!-- Botón para añadir producto -->
+                    <a href="/agregar_producto" class="btn btn-primary">Añadir Producto</a>
                 </div>
 
                 <!-- Tabla de Productos -->
-                <a href="{% url 'agregar_producto' %}" class="btn btn-primary mb-4">Agregar Producto</a>
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -95,6 +96,7 @@
                             <th>Tipo</th>
                             <th>Precio</th>
                             <th>Stock</th>
+                            <th>Opciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -105,6 +107,9 @@
                             <td>{{ producto.tipo_producto }}</td>
                             <td>${{ producto.precio }}</td>
                             <td>{{ producto.stock }}</td>
+                            <td><a href="{% url 'eliminar_producto' producto.id_producto %}" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar esta consulta?');">Eliminar</a>
+                            
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>

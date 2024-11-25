@@ -28,10 +28,18 @@
 
     <!-- Formulario de agregar cita -->
     <div class="container">
-        <form method="POST" action="{% url 'agregar_agenda' %}">
+        <form method="POST" action="{% url 'agregar_agenda' mascota.id_mascota%}">
             {% csrf_token %}
             <div class="form-section">
                 <h3 class="text-center">Registrar Cita</h3>
+                <div class="mb-3">
+                    <label for="usuario" class="form-label">Tutor</label> 
+                    <input type="text" class="form-control" id="usuario" name="usuario" disabled value="{{mascota.dueño.nombre}} {{mascota.dueño.apellidos}}">
+                </div>
+                <div class="mb-3">
+                    <label for="mascota" class="form-label">Mascota</label> 
+                    <input type="text" class="form-control" id="mascota" name="mascota" disabled value="{{mascota.nombre}} ">
+                </div>
                 <div class="mb-3">
                     <label for="fecha" class="form-label">Fecha</label>
                     <input type="date" class="form-control" id="fecha" name="fecha" required>
@@ -39,28 +47,6 @@
                 <div class="mb-3">
                     <label for="hora" class="form-label">Hora</label>
                     <input type="time" class="form-control" id="hora" name="hora" required>
-                </div>
-                <div class="mb-3">
-                    <label for="estado" class="form-label">Estado</label>
-                    <input type="text" class="form-control" id="estado" name="estado" maxlength="50" placeholder="Ej. Pendiente, Completada" required>
-                </div>
-                <div class="mb-3">
-                    <label for="mascota" class="form-label">Mascota</label>
-                    <select class="form-select" id="mascota" name="mascota" required>
-                        <option value="" disabled selected>Selecciona una mascota</option>
-                        {% for mascota in mascotas %}
-                        <option value="{{ mascota.id }}">{{ mascota.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="usuario" class="form-label">Usuario</label>
-                    <select class="form-select" id="usuario" name="usuario" required>
-                        <option value="" disabled selected>Selecciona un usuario</option>
-                        {% for usuario in usuarios %}
-                        <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
-                        {% endfor %}
-                    </select>
                 </div>
                 <div class="text-center mt-4">
                     <button type="submit" class="btn btn-primary">Guardar Cita</button>

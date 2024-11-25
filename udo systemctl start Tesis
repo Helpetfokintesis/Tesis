@@ -1,0 +1,16 @@
+[0;1;31m●[0m Tesis.service - gunicorn daemon for Tesis
+     Loaded: loaded (/etc/systemd/system/Tesis.service; enabled; vendor preset: enabled)
+     Active: [0;1;31mfailed[0m (Result: exit-code) since Mon 2024-11-25 06:01:48 UTC; 3min 16s ago
+    Process: 54799 ExecStart=/home/ubuntu/Tesis/venv/bin/gunicorn --workers 3 --bind unix:/home/ubuntu/Tesis/Tesis.sock Tesis.wsgi:application [0;1;31m(code=exited, status=3)[0m
+   Main PID: 54799 (code=exited, status=3)
+
+Nov 25 06:01:48 helpet2lavenganza gunicorn[54860]:   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+Nov 25 06:01:48 helpet2lavenganza gunicorn[54860]:   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+Nov 25 06:01:48 helpet2lavenganza gunicorn[54860]: ModuleNotFoundError: No module named 'Tesis'
+Nov 25 06:01:48 helpet2lavenganza gunicorn[54860]: [2024-11-25 06:01:48 +0000] [54860] [INFO] Worker exiting (pid: 54860)
+Nov 25 06:01:48 helpet2lavenganza gunicorn[54799]: [2024-11-25 06:01:48 +0000] [54799] [ERROR] Worker (pid:54840) exited with code 3
+Nov 25 06:01:48 helpet2lavenganza gunicorn[54799]: [2024-11-25 06:01:48 +0000] [54799] [ERROR] Worker (pid:54860) was sent SIGTERM!
+Nov 25 06:01:48 helpet2lavenganza gunicorn[54799]: [2024-11-25 06:01:48 +0000] [54799] [ERROR] Shutting down: Master
+Nov 25 06:01:48 helpet2lavenganza gunicorn[54799]: [2024-11-25 06:01:48 +0000] [54799] [ERROR] Reason: Worker failed to boot.
+Nov 25 06:01:48 helpet2lavenganza systemd[1]: [0;1;39m[0;1;31m[0;1;39mTesis.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Nov 25 06:01:48 helpet2lavenganza systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mTesis.service: Failed with result 'exit-code'.[0m

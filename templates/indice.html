@@ -65,7 +65,7 @@
 
                     {% if user.is_superuser %}
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="#">Inicio</a>
+                        <a class="nav-link text-white" href="/">Inicio</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-white" href="/dashboard">Dashboard</a>
@@ -79,10 +79,10 @@
 
                     {% elif user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="#">Inicio</a>
+                        <a class="nav-link text-white" href="/">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="#">Servicios</a>
+                        <a class="nav-link text-white" href="/dashboard_usuario">Servicios</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-white" href="#">Contacto</a>
@@ -93,7 +93,7 @@
 
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="#">Inicio</a>
+                        <a class="nav-link text-white" href="/">Inicio</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-white" href="#">Servicios</a>

@@ -33,7 +33,7 @@
             <a class="navbar-brand text-white" href="/">HelPet - Recepción</a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link text-white" href="/CerrarSesion">Cerrar Sesión</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="/cerrarSesion">Cerrar Sesión</a></li>
                 </ul>
             </div>
         </div>
@@ -111,7 +111,9 @@
                             <td>{{ mascota.nacimiento }}</td>
                             <td>{{ mascota.ultima_consulta|default:"Sin consulta" }}</td>
                             <td>
-                                <a href="{% url 'agregar_mascota' mascota.dueño.id_dueño %}" class="btn btn-primary mb-4">Agregar Mascota</a>
+                                <a href="{% url 'agregar_mascota' mascota.dueño.id_dueño %}" class="btn btn-secondary">Agregar Mascota</a>
+                                <a href="{% url 'agregar_consulta' mascota.id_mascota%}" class="btn btn-secondary">Agregar Consulta</a>
+                                <a href="{% url 'agregar_agenda' mascota.id_mascota%} " class="btn btn-secondary">Agregar Cita</a>
                             </td>
                         </tr>
                         {% empty %}

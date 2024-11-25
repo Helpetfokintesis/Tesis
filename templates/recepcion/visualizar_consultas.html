@@ -33,7 +33,7 @@
             <a class="navbar-brand text-white" href="/">HelPet - Recepción</a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link text-white" href="/CerrarSesion">Cerrar Sesión</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="/cerrarSesion">Cerrar Sesión</a></li>
                 </ul>
             </div>
         </div>
@@ -86,7 +86,7 @@
                 </div>
 
                 <!-- Tabla de Consultas -->
-                <a href="{% url 'agregar_consulta' %}" class="btn btn-primary mb-4">Agregar Consulta</a>
+                
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -105,7 +105,7 @@
                             <td>{{ consulta.mascota.nombre }}</td>
                             <td>{{ consulta.fecha_consulta }}</td>
                             <td>{{ consulta.motivo }}</td>
-                            <td>{{ consulta.diagnostico }}</td>
+                            <td>{{ consulta.diagnóstico }}</td>
                             <td>{{ consulta.tratamiento }}</td>
                             <td>
                                 <ul>

@@ -36,8 +36,8 @@ class Agenda(models.Model):
     fecha = models.DateField()
     hora = models.TimeField()
     estado = models.CharField(max_length=50)
-    mascota = models.OneToOneField(Mascota, on_delete=models.CASCADE)
-    usuario = models.OneToOneField('UsuarioSistema', on_delete=models.CASCADE)
+    mascota = models.ForeignKey(Mascota, on_delete=models.CASCADE)
+
 
 class UsuarioSistema(models.Model):
     id_usuario = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -46,14 +46,7 @@ class UsuarioSistema(models.Model):
     correo = models.EmailField(unique=True)
     contraseña_hash = models.CharField(max_length=255)
 
-class Consulta(models.Model):
-    id_consulta = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    mascota = models.ForeignKey(Mascota, on_delete=models.CASCADE, related_name="consultas")
-    fecha_consulta = models.DateField()
-    motivo = models.TextField()
-    diagnóstico = models.TextField()
-    tratamiento = models.TextField()
-    productos = models.ManyToManyField('Producto', related_name="consultas")
+
 
 class Recordatorio(models.Model):
     id_recordatorio = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -71,6 +64,17 @@ class Producto(models.Model):
     tipo_producto = models.CharField(max_length=50)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.IntegerField()
+
+
+class Consulta(models.Model):
+    id_consulta = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    mascota = models.ForeignKey(Mascota, on_delete=models.CASCADE, related_name="consultas")
+    fecha_consulta = models.DateField()
+    motivo = models.TextField()
+    diagnóstico = models.TextField()
+    tratamiento = models.TextField()
+    productos = models.ManyToManyField(Producto, related_name="consultas", blank = True)
+
 
 class CanalComunicacion(models.Model):
     id_canal = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
