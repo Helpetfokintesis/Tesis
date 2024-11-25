@@ -17,7 +17,7 @@ from django.conf import settings
 from .utils import formato_numero_chileno, enviar_mensaje_whatsapp, enviar_correo_electronico
 
 from datetime import datetime
-
+from django.contrib.auth import update_session_auth_hash
 from django.db.models import Q
 
 
@@ -69,12 +69,16 @@ def error_prohibido(request, exception=None):
 
 
 
-
-
-
-
-
 #Autentificación
+
+def obtener_token_para_usuario(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+
 def iniciarSesion(request):
     if request.method == "POST":
         correo = request.POST.get('email')
@@ -84,10 +88,11 @@ def iniciarSesion(request):
         user = authenticate(request, username=correo, password=contraseña)
 
         if user is not None:
+            # Iniciar sesión con el usuario autenticado
             login(request, user)
             return redirect('index')  # Redirigir al índice
         else:
-            messages.error(request, "Correo o contraseña incorrectos.")  # Mensaje de error
+            messages.error(request, "Correo o contraseña incorrectos.", extra_tags="error_inicio")  # Mensaje de error
     return render(request, "formularioInicioUsuario.html")
 
 
@@ -560,9 +565,8 @@ def mis_mascotas(request):
     return render(request, 'tutor/mis_mascotas.html', {'mascotas': mascotas})
 
 def editar_perfil(request, id_dueño):
-    # Obtener el usuario actual
     usuario = get_object_or_404(Dueño, id_dueño=id_dueño)
-    
+
     if request.method == 'POST':
         # Recuperar los datos enviados desde el formulario
         nombre = request.POST.get('nombre')
@@ -573,8 +577,13 @@ def editar_perfil(request, id_dueño):
         ciudad = request.POST.get('ciudad')
         region = request.POST.get('region')
         pais = request.POST.get('pais')
-        
-        # Actualizar los campos del usuario
+
+        # Validar campos obligatorios
+        if not nombre or not correo:
+            messages.error(request, 'Los campos "Nombre" y "Correo" son obligatorios.')
+            return redirect('editar_perfil', id_dueño=id_dueño)
+
+        # Actualizar los campos del modelo Dueño
         usuario.nombre = nombre
         usuario.apellidos = apellidos
         usuario.teléfono = telefono
@@ -583,20 +592,32 @@ def editar_perfil(request, id_dueño):
         usuario.ciudad = ciudad
         usuario.región = region
         usuario.país = pais
-        usuario.save()  # Guardar los cambios en la base de datos
+
+        usuario.save()
+
+        # Actualizar el modelo UsuarioSistema
+        usuario_sistema = get_object_or_404(UsuarioSistema, correo=request.user.email)
+        usuario_sistema.correo = correo
+        usuario_sistema.save()
+
+        # Actualizar el modelo User de Django
+        user_django = get_object_or_404(User, email=request.user.email)
+        user_django.username = correo
+        user_django.email = correo
+        user_django.save()
 
         # Mostrar un mensaje de éxito
         messages.success(request, 'Tu perfil ha sido actualizado correctamente.')
-        return redirect('perfil_usuario')  # Redirige a la página del perfil (ajusta según corresponda)
+        return redirect('perfil_usuario')
 
-    # Renderizar el formulario con los datos actuales del usuario
     return render(request, 'tutor/editar_perfil.html', {'usuario': usuario})
 
-def editar_contrasena(request):
+def editar_contrasena(request, id_dueño):
     # Obtener el usuario actual
-    dueño = get_object_or_404(Dueño, correo = request.user.email)
-    usuario = get_object_or_404(UsuarioSistema, correo = request.user.email)
-    user = get_object_or_404(User, username = request.user.email)
+    dueño = get_object_or_404(Dueño, id_dueño=id_dueño)
+    usuario_sistema = get_object_or_404(UsuarioSistema, correo=dueño.correo)
+    user = get_object_or_404(User, username=dueño.correo)
+
     if request.method == 'POST':
         contrasena_actual = request.POST.get('contrasena_actual')
         nueva_contrasena = request.POST.get('nueva_contrasena')
@@ -605,28 +626,32 @@ def editar_contrasena(request):
         # Validar que las contraseñas coinciden
         if nueva_contrasena != confirmar_contrasena:
             messages.error(request, 'La nueva contraseña y su confirmación no coinciden.')
-            return redirect('editar_contrasena')
+            return redirect('editar_contrasena', id_dueño=id_dueño)
 
-        # Verificar la contraseña actual
-        usuario = request.user
-        if not usuario.check_password(contrasena_actual):
+        # Verificar la contraseña actual en el modelo `User`
+        if not user.check_password(contrasena_actual):
             messages.error(request, 'La contraseña actual es incorrecta.')
-            return redirect('editar_contrasena')
+            return redirect('editar_contrasena', id_dueño=id_dueño)
 
-        # Actualizar la contraseña
-        usuario.set_password(nueva_contrasena)
-        usuario.save()
+        # Actualizar la contraseña en el modelo `User`
+        user.set_password(nueva_contrasena)
+        user.save()
+
+        # Guardar la contraseña hasheada en el modelo `UsuarioSistema`
+        usuario_sistema.contraseña_hash = user.password  # Copia el hash de la contraseña del modelo `User`
+        usuario_sistema.save()
 
         # Mantener la sesión activa después de cambiar la contraseña
-        update_session_auth_hash(request, usuario)
+        update_session_auth_hash(request, user)
 
         # Mensaje de éxito y redirección
         messages.success(request, 'Tu contraseña ha sido actualizada correctamente.')
-        return redirect('perfil')  # Ajusta según la página de perfil
+        return redirect('perfil_usuario')  # Ajusta según la página de perfil
 
-    return render(request, 'tutor/editar_contrasena.html', {'usuario': usuario})
+    return render(request, 'tutor/editar_contrasena.html', {'usuario': user})
 
-def agregar_mascota_dueno(request):
+def agregar_mascota_dueño(request):
+    dueño = get_object_or_404(Dueño, correo = request.user.email)
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
         raza = request.POST.get('raza', '')
@@ -636,7 +661,7 @@ def agregar_mascota_dueno(request):
 
         # Crear la nueva mascota asociada al usuario actual
         mascota = Mascota(
-            dueño=request.user,  # Se asocia la mascota al usuario autenticado
+            dueño=dueño,    
             nombre=nombre,
             raza=raza,
             especie=especie,
@@ -647,4 +672,4 @@ def agregar_mascota_dueno(request):
         messages.success(request, 'Mascota registrada con éxito.')
         return redirect('dashboard_usuario')  # Redirige al dashboard del usuario
 
-    return render(request, 'agregar_mascota.html')  # Muestra el formulario
+    return render(request, 'tutor/agregar_mascota2.html')  # Muestra el formulario

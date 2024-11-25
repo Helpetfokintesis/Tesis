@@ -112,6 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -162,9 +163,27 @@ EMAIL_HOST_USER = "matuas248@gmail.com"
 EMAIL_HOST_PASSWORD = "ebxk mcju zgsn cdne"
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://825e-34-45-149-76.ngrok-free.app",
+    "https://1bcb-34-176-169-134.ngrok-free.app",
 ]
 
-LOGIN_URL = '/iniciarSesion'  # Cambiar la ruta predeterminada para la autenticación
-LOGIN_REDIRECT_URL = '/'  # Redirigir después de iniciar sesión exitosamente
-LOGOUT_REDIRECT_URL = '/'  # Redirigir después de cerrar sesión
+# Asegúrate de que el modelo User esté configurado correctamente
+AUTH_USER_MODEL = 'auth.User'
+
+# Configura el backend de autenticación
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Backend predeterminado de Django
+]
+
+# Configura la URL de redirección después del login
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/iniciarSesion'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}

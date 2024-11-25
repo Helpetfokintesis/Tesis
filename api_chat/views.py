@@ -13,6 +13,11 @@ from dotenv import load_dotenv
 from django.http import JsonResponse
 import json
 from django.contrib.auth.decorators import login_required
+from django.middleware.csrf import get_token
+from django.contrib.auth.models import  User
+from django.contrib.sessions.models import Session
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.decorators import authentication_classes, permission_classes
 
 
 # Load the API key from the .env file
@@ -142,26 +147,82 @@ class ChatBotVeterinaria:
             edad_meses += 12
         return f"{edad_años} años y {edad_meses} meses"
 
-@csrf_exempt
-@login_required
-def chatbot_kommunicate(request):
+
+def verificar_usuario_manual(request):
+    """
+    Verifica manualmente si un usuario está autenticado.
+    """
     if not request.user.is_authenticated:
-        return JsonResponse({"error": "Debes iniciar sesión para usar el chatbot."}, status=403)
+        # Retorna una tupla indicando el error
+        return None, "El usuario no está autenticado o la sesión ha expirado."
+
+    resultado = {
+        "username": request.user.username,
+        "email": request.user.email,
+        "is_authenticated": True,
+    }
+    print(f"verificar_usuario_manual: {resultado}")
+    return resultado, None
+
+def obtener_datos_usuario(request):
+    try:
+        # Obtener los datos del usuario
+        usuario_info, error = verificar_usuario_manual(request)
+        
+        if error:
+            print(f"Error en verificar_usuario_manual: {error}")  # Debugging
+            return None, error  # Retornar el error si ocurre
+
+        print(f"Usuario obtenido: {usuario_info}")  # Debugging
+
+        # Buscar el dueño en la base de datos
+        dueño = Dueño.objects.get(correo=usuario_info["email"])  # Usar email en lugar de username si corresponde
+
+        # Retornar los datos del dueño
+        return {
+            "dueño": {
+                "nombre": dueño.nombre,
+                "apellidos": dueño.apellidos,
+                "teléfono": dueño.teléfono,
+                "dirección": dueño.dirección,
+                "ciudad": dueño.ciudad,
+                "país": dueño.país,
+                "región": dueño.región,
+            }
+        }, None
+
+    except Dueño.DoesNotExist:
+        return None, "No se encontró un dueño asociado al correo del usuario."
+
+    except Exception as e:
+        print(f"Error en obtener_datos_usuario: {str(e)}")  # Debugging
+        return None, f"Error al obtener datos del usuario: {str(e)}"
+
+
+
+@csrf_exempt
+
+@csrf_exempt
+def chatbot_kommunicate(request):
     if request.method == "POST":
         try:
             # Decodificar el JSON recibido del webhook
             data = json.loads(request.body.decode("utf-8"))
-            
+
             # Extraer información importante
-            message = data.get("message", "")
-            event_name = data.get("eventName", "")
-            metadata = data.get("metadata", {})
+            message = data.get("message", "").strip()
+            event_name = data.get("eventName", "").strip()
 
-            # Obtener el usuario autenticado desde la sesión
-            usuario_sistema = get_object_or_404(UsuarioSistema, correo=request.user.email)
+            # Usar la función auxiliar para obtener los datos del usuario
+            datos_usuario, error = obtener_datos_usuario(request)
 
-            # Relacionar UsuarioSistema con Dueño
-            dueño = get_object_or_404(Dueño, correo=usuario_sistema.correo)
+            if error:
+                print(f"Error al obtener datos del usuario: {error}")  # Debugging
+                # Si hay un error, responder con el mensaje correspondiente
+                return JsonResponse([{"message": error}], safe=False)
+
+            # Extraer dueño de los datos obtenidos
+            dueño = datos_usuario["dueño"]
 
             # Crear una instancia del chatbot para el usuario autenticado
             chatbot = ChatBotVeterinaria(dueño)
@@ -169,30 +230,31 @@ def chatbot_kommunicate(request):
             # Manejo de eventos específicos
             if event_name == "WELCOME":
                 return JsonResponse([{
-                    "message": f"¡Hola {dueño.nombre}! Bienvenido a HelPet. ¿En qué puedo ayudarte hoy? Opciones: Recordatorios, Sugerencias, Consultas."
+                    "message": f"¡Hola {dueño['nombre']}! Bienvenido a HelPet. ¿En qué puedo ayudarte hoy? Opciones: Recordatorios, Sugerencias, Consultas."
                 }], safe=False)
-            
+
             # Procesar mensaje normal
             if message:
                 response_message = chatbot.manejar_respuesta(message)
-                return JsonResponse([{
-                    "message": response_message
-                }], safe=False)
-
-        except UsuarioSistema.DoesNotExist:
-            # Si el usuario no existe en UsuarioSistema
-            return JsonResponse([{
-                "message": "No se encontró un usuario en el sistema. Por favor, verifica tu cuenta o regístrate."
-            }], safe=False)
-
-        except Dueño.DoesNotExist:
-            # Si no se encuentra el dueño relacionado
-            return JsonResponse([{
-                "message": "No se encontró un dueño asociado con tu cuenta. Por favor, verifica tu información."
-            }], safe=False)
+                return JsonResponse([{"message": response_message}], safe=False)
 
         except Exception as e:
             # Manejar errores generales
+            print(f"Error en chatbot_kommunicate: {str(e)}")  # Debugging
             return JsonResponse({"error": f"Error procesando la solicitud: {str(e)}"}, status=500)
 
     return JsonResponse({"error": "Método no permitido"}, status=405)
+
+
+@login_required
+def verificar_usuario_json(request):
+    """
+    Devuelve los datos del usuario autenticado en formato JSON.
+    """
+    csrf_token = get_token(request)  # Genera el token CSRF
+    return JsonResponse({
+        "username": request.user.username,
+        "email": request.user.email,
+        "is_authenticated": request.user.is_authenticated,
+        "csrf_token": csrf_token
+    })

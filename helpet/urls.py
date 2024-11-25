@@ -66,7 +66,7 @@ urlpatterns = [
     path('mis_mascotas/', views.mis_mascotas, name='mis_mascotas'),
     path('editar_perfil/<uuid:id_dueño>/', views.editar_perfil, name='editar_perfil'),
     path('editar_contrasena/<uuid:id_dueño>/', views.editar_contrasena, name='editar_contrasena'),
-    path('agregar_mascota/', views.agregar_mascota_dueno, name='agregar_mascota_dueno'),
+    path('agregar_mascota/', views.agregar_mascota_dueño, name='agregar_mascota_dueño'),
 
 ]
 
