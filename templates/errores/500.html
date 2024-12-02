@@ -1,0 +1,16 @@
+{% extends 'errores/404.html' %}
+
+{%load static%}
+
+{% block titulo %}
+    <title>ERROR 500</title>
+{% endblock %}
+
+{% block error %}
+<div class="error-container">
+    <div class="text-center">
+        <h1 class="error-title">ERROR 500</h1>
+        <p class="error-subtitle">Error interno del servidor</p>
+    </div>
+</div>
+{% endblock %}
