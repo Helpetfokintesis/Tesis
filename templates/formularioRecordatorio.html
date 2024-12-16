@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Recordatorio - HelPet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .navbar-custom {
+            background-color: #343a40;
+        }
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .form-section h3 {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand text-white" href="/">HelPet</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">Servicios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">Contacto</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sección de Formulario -->
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <form method="POST" action="{% url 'agregar_recordatorio' mascota.id_mascota %}" class="col-md-8 col-lg-6">
+            <div class="form-section">
+                {% csrf_token %}
+                
+                <h3 class="text-center">Información del Recordatorio</h3>
+                <p class="text-center"><strong>Mascota: </strong>{{ mascota.nombre }} | <strong>Tutor: </strong>{{ mascota.dueño.nombre }} {{ mascota.dueño.apellidos }}</p>
+                
+                <div class="mb-3">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select class="form-select" id="tipo" name="tipo" required>
+                        <option value="" disabled selected>Selecciona el tipo</option>
+                        <option value="Antiparasitarios">Antiparasitarios</option>
+                        <option value="Inyecciones">Inyecciones</option>
+                        <option value="Medicamentos">Medicamentos</option>
+                        <option value="Control">Control</option>
+                        <option value="Antipulgas">Antipulgas</option>
+                    </select>
+                </div>                
+
+                <div class="mb-3">
+                    <label for="fecha" class="form-label">Fecha</label>
+                    <input type="date" class="form-control" id="fecha" name="fecha" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="frecuencia" class="form-label">Frecuencia</label>
+                    <input type="text" class="form-control" id="frecuencia" name="frecuencia" required maxlength="50">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Canales de Comunicación</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="canales_comunicacion" id="email" value="Email">
+                        <label class="form-check-label" for="email">Email</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="canales_comunicacion" id="sms" value="SMS">
+                        <label class="form-check-label" for="sms">SMS</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="canales_comunicacion" id="whatsapp" value="WhatsApp">
+                        <label class="form-check-label" for="whatsapp">WhatsApp</label>
+                    </div>
+                </div>                
+
+                <div class="text-center mt-4">
+                    <button style="background-color: #343a40;" type="submit" class="btn btn-primary">Guardar Recordatorio</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

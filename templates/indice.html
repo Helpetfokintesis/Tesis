@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelPet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="icon" href="{% static 'img/images.png' %}" type="image/x-icon">
+
+    <style>
+        .navbar-custom {
+            background-color: #343a40;
+        }
+        .chat-open-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #343a40;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            text-align: center;
+            line-height: 60px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .chat-open-button:hover {
+            background-color: #495057;
+        }
+        .chat-popup {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 320px;
+            max-height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .chat-header {
+            background-color: #343a40;
+            color: white;
+            padding: 10px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        .chat-header button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            float: right;
+            cursor: pointer;
+        }
+        .chat-messages {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+        .chat-footer {
+            padding: 10px;
+            background-color: #ffffff;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+        .chat-footer textarea {
+            flex-grow: 1;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            resize: none;
+            padding: 8px;
+        }
+        .chat-footer button {
+            background-color: #343a40;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+        }
+        .chat-footer button:hover {
+            background-color: #495057;
+        }
+        .chat-message {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+        .chat-message-content {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f1f1f1;
+        }
+        .chat-message.user .chat-message-content {
+            background-color: #d1e7dd;
+        }
+        footer {
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            background-color: #f8f9fa;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .feature-section img {
+            display: block;
+            width: 100%;
+            height: auto; /* Mantiene la proporción de la imagen */
+        }
+        .container-fluid {
+            padding: 0; /* Elimina los márgenes del contenedor para que la imagen ocupe todo el ancho */
+        }
+    </style>
+</head>
+<body>
+  <!-- Barra de navegación -->
+
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand text-white" href="#">HelPet</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+
+                    {% if user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/contacto">Contacto</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/cerrarSesion">Cerrar Sesión</a>
+                    </li>
+
+                    {% elif user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/dashboard_usuario">Servicios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/contacto">Contacto</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/cerrarSesion">Cerrar Sesión</a>
+                    </li>
+
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/contacto">Contacto</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/iniciarSesion">Iniciar Sesión</a>
+                    </li>
+                    {% endif %}
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sección Héroe -->
+    <section class="hero" style="background-color: #343a40; color: white; padding: 40px 20px; text-align: center;">
+    <h1 style="font-size: 2.5rem; font-weight: bold;">Tu aplicación de recordatorios veterinarios inteligente</h1>
+    </section>
+
+    <!-- Sección de Información -->
+    <section class="feature-section bg-light">
+        <div class="container-fluid text-center p-0">
+            <img src="{% static 'img/img1.jpg' %}" alt="Principal" class="w-100">
+        </div>
+        <div class="container text-center">
+            <h2 class="mb-5 pt-3" style="color: #343a40;">Características Principales</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">💬</div>
+                        <h5>Recordatorios Automatizados</h5>
+                        <p>Envía recordatorios de citas, tratamientos y vacunaciones por SMS, correo electrónico y WhatsApp.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">📅</div>
+                        <h5>Gestión de Citas</h5>
+                        <p>Organiza y gestiona citas médicas fácilmente desde nuestra aplicación.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">🐾</div>
+                        <h5>Gestión de Mascotas</h5>
+                        <p>Registra información de tus mascotas para un seguimiento detallado de su salud.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Imágenes -->
+    
+
+    <!-- Sección de Contacto -->
+    <section class="py-5 bg-light">
+        <div class="container text-center">
+            <h2 class="mb-4" style="color: #343a40;">¿Listo para optimizar tu veterinaria?</h2>
+            <p>Contacta con nosotros y comienza a mejorar la experiencia de tus clientes.</p>
+            <a href="/contacto" class="btn btn-dark">Contáctanos</a>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <p class="mb-0">© 2024 HelPet. Todos los derechos reservados.</p>
+    </footer>
+
+    <!-- Botón flotante para abrir el chat -->
+    <button class="chat-open-button" onclick="toggleChat()">💬</button>
+
+    <!-- Popup del chat -->
+    <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+            Chat HelPet
+            <button onclick="toggleChat()">×</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Los mensajes aparecerán aquí -->
+        </div>
+        <div class="chat-footer">
+            <textarea id="chatInput" placeholder="Escribe tu mensaje..."></textarea>
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    
+
+    <script>
+    let userEmail = null; // Variable para almacenar el correo del usuario
+    let chatInitialized = false; // Control para mostrar el saludo inicial una vez
+
+    // Función para alternar el popup del chat
+    function toggleChat() {
+        const chatPopup = document.getElementById("chatPopup");
+
+        if (chatPopup.style.display === "block") {
+            chatPopup.style.display = "none";
+        } else {
+            chatPopup.style.display = "block";
+
+            // Mostrar saludo inicial al abrir el chat por primera vez
+            if (!chatInitialized) {
+                addMessageToChat(
+                    "¡Hola! Soy HelPet, tu asistente virtual. Por favor, escribe tu correo electrónico para comenzar.",
+                    "bot"
+                );
+                chatInitialized = true;
+            }
+        }
+    }
+
+    // Función para enviar un mensaje
+    async function sendMessage() {
+        const chatInput = document.getElementById("chatInput");
+        const messageText = chatInput.value.trim();
+
+        if (!messageText) return;
+
+        addMessageToChat(messageText, "user"); // Mostrar el mensaje del usuario
+
+        try {
+            const response = await fetch("/chat/interact/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: messageText,
+                    email: userEmail || messageText, // Enviar el correo en el primer mensaje
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.status === "success" && !userEmail) {
+                    // Guardar el correo después de la verificación inicial
+                    userEmail = messageText;
+                }
+                addMessageToChat(data.message, "bot");
+
+                if (data.options) {
+                    addMessageToChat(
+                        `Opciones:\n${data.options.join("\n")}`,
+                        "bot"
+                    );
+                }
+            } else {
+                throw new Error("Error al interactuar con el servidor.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            addMessageToChat(
+                "Hubo un problema al procesar tu solicitud. Inténtalo más tarde.",
+                "bot"
+            );
+        }
+
+        chatInput.value = ""; // Limpiar el campo de entrada
+    }
+
+    // Función para agregar un mensaje al chat
+    function addMessageToChat(message, sender) {
+        const chatMessages = document.getElementById("chatMessages");
+
+        const messageContainer = document.createElement("div");
+        messageContainer.classList.add("chat-message", sender);
+
+        const messageContent = document.createElement("div");
+        messageContent.classList.add("chat-message-content");
+        messageContent.textContent = message;
+
+        messageContainer.appendChild(messageContent);
+        chatMessages.appendChild(messageContainer);
+
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll automático
+    }
+    </script>
+
+
+
+
+
+</body> 
+</html>

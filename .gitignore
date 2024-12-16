@@ -1,0 +1,51 @@
+# Archivos de Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.coverage
+*.pytest_cache/
+*.sqlite3
+
+# Configuraciones sensibles
+*.env
+.env.*
+.api_chat/api_key.env
+
+# Archivos de logs
+*.log
+logs/
+
+# Archivos de migraciones
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# Archivos generados por el sistema operativo
+.DS_Store
+*.swp
+*.swo
+
+# Archivos y directorios de dependencias
+venv/
+env/
+*.egg-info/
+pip-log.txt
+staticfiles/
+
+# Archivos y configuraciones locales de IDEs
+.idea/
+.vscode/
+*.iml
+
+# Archivos de compilación y cache
+node_modules/
+dist/
+build/
+*.bundle.js
+*.map
+
+# Ignorar archivo de configuración
+api_chat/.env
+helpet/settings.py
+
+
