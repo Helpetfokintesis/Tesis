@@ -111,9 +111,11 @@
                         <input type="text" class="form-control me-2" name="q" placeholder="Buscar por nombre de mascota o dueño" value="{{ query }}">
                         <select class="form-select me-2" name="tipo">
                             <option value="" {% if not tipo_filtro %}selected{% endif %}>Filtrar por tipo</option>
-                            <option value="vacuna" {% if tipo_filtro == "vacuna" %}selected{% endif %}>Vacuna</option>
+                            <option value="antiparasitarios" {% if tipo_filtro == "antiparasitarios" %}selected{% endif %}>Antiparasitarios</option>
+                            <option value="inyecciones" {% if tipo_filtro == "inyecciones" %}selected{% endif %}>Inyecciones</option>
+                            <option value="medicamentos" {% if tipo_filtro == "medicamentos" %}selected{% endif %}>Medicamentos</option>
                             <option value="control" {% if tipo_filtro == "control" %}selected{% endif %}>Control</option>
-                            <option value="tratamiento" {% if tipo_filtro == "tratamiento" %}selected{% endif %}>Tratamiento</option>
+                            <option value="antipulgas" {% if tipo_filtro == "antipulgas" %}selected{% endif %}>Antipulgas</option>
                         </select>
                         <button type="submit" class="btn btn-primary">Aplicar</button>
                     </form>
