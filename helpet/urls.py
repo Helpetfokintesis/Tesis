@@ -62,7 +62,7 @@ urlpatterns = [
     path('eliminar_cita/<uuid:id_agenda>/', views.eliminar_cita, name='eliminar_cita'),
     path('contacto/', views.contacto, name= 'contacto'),
     path('calendario/', views.calendario, name='calendario'),  # Página del calendario
-    path('calendario/eventos/', views.obtener_eventos, name='obtener_eventos'),  # Endpoint de eventos
+    path('panel/', views.panel, name='panel'),
 
 
     path('eliminar_producto/<uuid:id_producto>/', views.eliminar_producto, name='eliminar_producto'),
@@ -84,6 +84,7 @@ urlpatterns = [
     path('2fa/configurar/', views.configurar_2fa, name='configurar_2fa'),
     path("2fa/verificar/", views.verificar_2fa, name="verificar_2fa"),
     path("2fa/desactivar/", views.desactivar_2fa, name="desactivar_2fa"),
+
 
 ]
 

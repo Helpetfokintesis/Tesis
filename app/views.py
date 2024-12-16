@@ -1001,43 +1001,45 @@ def contacto(request):
 def calendario(request):
     return render(request, 'recepcion/calendario.html')
 
+from datetime import date
 
+def panel(request):
+    tutores = Dueño.objects.all()
+    mascotas = Mascota.objects.all()
+    recordatorios = Recordatorio.objects.all()
 
-# Endpoint para obtener eventos
-def obtener_eventos(request):
-    # Obtener los recordatorios
-    recordatorios = [
-        {
-            "title": f"Recordatorio: {recordatorio.tipo} - {recordatorio.mascota.nombre}",
-            "start": recordatorio.fecha.isoformat(),
-            "color": "#ffc107"  # Amarillo
-        }
-        for recordatorio in Recordatorio.objects.all()
-    ]
+    contador_mascota = mascotas.count()
+    contador_recordatorio = recordatorios.count()
+    contador_tutores = tutores.count()
 
-    # Obtener las consultas
-    consultas = [
-        {
-            "title": f"Consulta: {consulta.mascota.nombre}",
-            "start": consulta.fecha_consulta.isoformat(),
-            "color": "#dc3545"  # Rojo
-        }
-        for consulta in Consulta.objects.all()
-    ]
+    # Para cada mascota, obtener sus recordatorios y calcular los días restantes
+    mascotas_con_recordatorios = []
+    for mascota in mascotas:
+        recordatorios_mascota = mascota.recordatorios.all()  # Obtener todos los recordatorios de esta mascota
+        recordatorios_info = []
+        
+        for recordatorio in recordatorios_mascota:
+            # Calcular la diferencia de días entre la fecha actual y la fecha del recordatorio
+            diferencia_dias = (recordatorio.fecha - date.today()).days
+            recordatorios_info.append({
+                'tipo': recordatorio.tipo,
+                'fecha': recordatorio.fecha,
+                'diferencia_dias': diferencia_dias
+            })
+        
+        if recordatorios_info:
+            mascotas_con_recordatorios.append({
+                'mascota': mascota,
+                'recordatorios': recordatorios_info
+            })
 
-    # Obtener las citas (Agenda)
-    citas = [
-        {
-            "title": f"Cita: {cita.mascota.nombre}",
-            "start": f"{cita.fecha.isoformat()}T{cita.hora.isoformat()}",
-            "color": "#0d6efd"  # Azul
-        }
-        for cita in Agenda.objects.all()
-    ]
+    data = {
+        'mascotas': mascotas,
+        'contador_mascota': contador_mascota,
+        'contador_recordatorio': contador_recordatorio,
+        'contador_tutores': contador_tutores,
+        'mascotas_con_recordatorios': mascotas_con_recordatorios
+    }
 
-    # Combinar todos los eventos
-    eventos = recordatorios + consultas + citas
-    return JsonResponse(eventos, safe=False)
-
-
+    return render(request, 'recepcion/panel.html', data)
 
