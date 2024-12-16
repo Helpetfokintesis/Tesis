@@ -298,15 +298,23 @@ def recordatorios(request):
             if not EnvioMensaje.objects.filter(dueño=dueño, fecha_envio=hoy).exists():
                 # Construir el mensaje
                 mensaje = f"¡Recordatorio! \nHola {dueño.nombre} {dueño.apellidos}\nMascota: {recordatorio.mascota.nombre} \nTipo: {recordatorio.tipo} \nFecha: {recordatorio.fecha} \nEstado: {recordatorio.estado}"
-
+                
                 numero_telefono = dueño.teléfono
                 
+                correo = dueño.correo
                 if numero_telefono:
-                    # Enviar el mensaje por WhatsApp
+                    # Enviar el mensaje por WhatsApp y correo
                     enviar_mensaje_whatsapp(numero_telefono, mensaje)
-
+                    asunto = "Tienes un recordatorio pendiente!"
+                    if not enviar_correo_electronico(correo, asunto, mensaje):
+                        raise Exception("No se pudo enviar el correo electrónico.")
                     # Registrar la fecha de envío
                     EnvioMensaje.objects.create(dueño=dueño, fecha_envio=hoy)
+                    # Enviar correo y WhatsApp
+                
+            
+            
+            
         else:
             # Si el estado es "completado", no hacemos nada
             continue
